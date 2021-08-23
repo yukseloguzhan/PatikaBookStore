@@ -1,4 +1,5 @@
-﻿using PatikaBookStore.BookOperations.GetBooks;
+﻿using AutoMapper;
+using PatikaBookStore.BookOperations.GetBooks;
 using PatikaBookStore.Common;
 using System;
 using System.Collections.Generic;
@@ -10,15 +11,18 @@ namespace PatikaBookStore.BookOperations.GetByIdBook
     public class GetByIdBookQuery
     {
         private readonly BookStoreContext _dbcontext;
+        private readonly IMapper _mapper;
+        public int BookId;
 
-        public GetByIdBookQuery(BookStoreContext dbcontext)
+        public GetByIdBookQuery(BookStoreContext dbcontext,IMapper mapper)
         {
             _dbcontext = dbcontext;
+            _mapper = mapper;
         }
 
-        public BooksViewModel Handle(int id)
+        public BooksDetailViewModel Handle()
         {
-            var book = _dbcontext.Books.Where(x => x.Id == id).SingleOrDefault();
+            var book = _dbcontext.Books.Where(x => x.Id == BookId).SingleOrDefault();
 
             if (book == null)
             {
@@ -26,14 +30,7 @@ namespace PatikaBookStore.BookOperations.GetByIdBook
             }
 
 
-            var bookView = new BooksViewModel
-            {
-                PageCount = book.PageCount,
-                Genre = ((GenreEnum)book.GenreId).ToString(),
-                PublishDate = book.PublishDate.Date.ToString("dd/MM/yyyy"),
-                Title = book.Title
-            };
-
+            var bookView = _mapper.Map<BooksDetailViewModel>(book); 
             return bookView;
 
 
@@ -41,7 +38,7 @@ namespace PatikaBookStore.BookOperations.GetByIdBook
 
     }
 
-    public class BooksViewModel
+    public class BooksDetailViewModel
     {
         public string Title { get; set; }
         public string Genre { get; set; }

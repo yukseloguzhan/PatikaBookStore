@@ -1,4 +1,5 @@
-﻿using System;
+﻿using AutoMapper;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -9,10 +10,12 @@ namespace PatikaBookStore.BookOperations.CreateBook
     {
         private readonly BookStoreContext _dbcontext;
         public CreateBookModel _createBookModel;
+        private readonly IMapper _mapper;
 
-        public CreateBookCommand(BookStoreContext dbcontext)
+        public CreateBookCommand(BookStoreContext dbcontext,IMapper mapper)
         {
             _dbcontext = dbcontext;
+            _mapper = mapper;
         }
 
         public void Handle()
@@ -24,11 +27,7 @@ namespace PatikaBookStore.BookOperations.CreateBook
                 throw new InvalidOperationException("Kitap zaten mevcut");
             }
 
-            book = new Book();
-            book.Title = _createBookModel.Title;
-            book.PublishDate = _createBookModel.PublishDate;
-            book.GenreId = _createBookModel.GenreId;
-            book.PageCount = _createBookModel.PageCount;
+            book = _mapper.Map<Book>(_createBookModel); 
 
             _dbcontext.Books.Add(book);
             _dbcontext.SaveChanges();

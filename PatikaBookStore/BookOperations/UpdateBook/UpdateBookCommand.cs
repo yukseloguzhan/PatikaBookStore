@@ -9,24 +9,23 @@ namespace PatikaBookStore.BookOperations.UpdateBook
     {
         private readonly BookStoreContext _dbcontext;
         public UpdateBookModel _updateBookModel;
+        public int BookId;
 
         public UpdateBookCommand(BookStoreContext dbcontext)
         {
             _dbcontext = dbcontext;
         }
 
-        public void Handle(int id)
+        public void Handle()
         {
-            var book = _dbcontext.Books.SingleOrDefault(x => x.Id == id);
+            var book = _dbcontext.Books.SingleOrDefault(x => x.Id == BookId);
 
             if (book == null)
             {
-                throw new InvalidOperationException("Kayıtlı böyle bir data yok!"+book.Id);
+                throw new InvalidOperationException("Kayıtlı böyle bir data yok!");
             }
 
             book.GenreId = _updateBookModel.GenreId != default ? _updateBookModel.GenreId : book.GenreId;
-            book.PageCount = _updateBookModel.PageCount != default ? _updateBookModel.PageCount : book.PageCount;
-            book.PublishDate = _updateBookModel.PublishDate != default ? _updateBookModel.PublishDate : book.PublishDate;
             book.Title = _updateBookModel.Title != default ? _updateBookModel.Title : book.Title;
 
             _dbcontext.SaveChanges();
@@ -38,8 +37,7 @@ namespace PatikaBookStore.BookOperations.UpdateBook
         {
             public string Title { get; set; }
             public int GenreId { get; set; }
-            public int PageCount { get; set; }
-            public DateTime PublishDate { get; set; }
+
         }
 
     }

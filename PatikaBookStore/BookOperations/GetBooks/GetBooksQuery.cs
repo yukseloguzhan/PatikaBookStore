@@ -1,4 +1,5 @@
-﻿using PatikaBookStore.Common;
+﻿using AutoMapper;
+using PatikaBookStore.Common;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,30 +10,19 @@ namespace PatikaBookStore.BookOperations.GetBooks
     public class GetBooksQuery
     {
         private readonly BookStoreContext _dbcontext;
+        private readonly IMapper _mapper;
 
-
-        public GetBooksQuery(BookStoreContext dbcontext)
+        public GetBooksQuery(BookStoreContext dbcontext, IMapper mapper)
         {
             _dbcontext = dbcontext;
+            _mapper = mapper;
         }
 
         public List<BooksViewModel> Handle()
         {
             var liste1 = _dbcontext.Books.OrderBy(x => x.Id).ToList();
-            List<BooksViewModel> vm = new List<BooksViewModel>();
-
-            foreach (var x in liste1)
-            {
-                vm.Add(new BooksViewModel
-                {
-                    Title = x.Title,
-                    PageCount = x.PageCount,
-                    PublishDate = x.PublishDate.Date.ToString("dd/MM/yyyy"),
-                    Genre = ((GenreEnum)x.GenreId).ToString()
-
-                });
-            }
-
+            List<BooksViewModel> vm = _mapper.Map<List<BooksViewModel>>(liste1);
+     
             return vm;
         }
 

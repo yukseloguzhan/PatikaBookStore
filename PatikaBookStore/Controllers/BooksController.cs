@@ -1,6 +1,10 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using AutoMapper;
+using FluentValidation;
+using FluentValidation.Results;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using PatikaBookStore.BookOperations.CreateBook;
+using PatikaBookStore.BookOperations.DeleteBook;
 using PatikaBookStore.BookOperations.GetBooks;
 using PatikaBookStore.BookOperations.GetByIdBook;
 using PatikaBookStore.BookOperations.UpdateBook;
@@ -18,16 +22,19 @@ namespace PatikaBookStore.Controllers
     public class BooksController : ControllerBase
     {
         private readonly BookStoreContext _context;
-        public BooksController(BookStoreContext context)
+        private readonly IMapper _mapper;
+
+        public BooksController(BookStoreContext context, IMapper mapper)
         {
             _context = context;
+            _mapper = mapper;
         }
 
 
         [HttpGet]
         public IActionResult GetBooks()
         {
-            GetBooksQuery query = new GetBooksQuery(_context);
+            GetBooksQuery query = new GetBooksQuery(_context, _mapper);
             var result = query.Handle();
             return Ok(result);
         }
@@ -36,30 +43,35 @@ namespace PatikaBookStore.Controllers
         public IActionResult GetById(int id)
         {
 
-            GetByIdBookQuery query = new GetByIdBookQuery(_context);
+            GetByIdBookQuery query = new GetByIdBookQuery(_context, _mapper);
 
             try
             {
-                var result = query.Handle(id);
+                query.BookId = id;
+                GetByIdBookValidator validations = new GetByIdBookValidator();
+                validations.ValidateAndThrow(query);
+                var result = query.Handle();
                 return Ok(result);
             }
             catch (Exception e)
             {
-
                 return NotFound(e.Message);
             }
-      
+
         }
 
         [HttpPost]
-        public IActionResult AddBook([FromBody]CreateBookModel newBook)
+        public IActionResult AddBook([FromBody] CreateBookModel newBook)
         {
 
-            CreateBookCommand command = new CreateBookCommand(_context);
+            CreateBookCommand command = new CreateBookCommand(_context, _mapper);
 
             try
             {
                 command._createBookModel = newBook;
+
+                CreateBookCommandValidator validations = new CreateBookCommandValidator();
+                validations.ValidateAndThrow(command);
                 command.Handle();
             }
             catch (Exception e)
@@ -68,20 +80,24 @@ namespace PatikaBookStore.Controllers
             }
 
             return Ok();
-            
+
         }
 
         [HttpPut("{id}")]
-        public IActionResult Put(int id ,[FromBody] UpdateBookModel book)
+        public IActionResult Put(int id, [FromBody] UpdateBookModel book)
         {
 
             UpdateBookCommand _command = new UpdateBookCommand(_context);
 
+
             try
             {
                 _command._updateBookModel = book;
-                _command.Handle(id);
-                
+                _command.BookId = id;
+                UpdateBookCommandValidator validations = new UpdateBookCommandValidator();
+                validations.ValidateAndThrow(_command);
+                _command.Handle();
+
             }
             catch (Exception e)
             {
@@ -95,16 +111,22 @@ namespace PatikaBookStore.Controllers
         [HttpDelete("{id}")]
         public IActionResult DeleteBook(int id)
         {
-            var book = _context.Books.SingleOrDefault(x => x.Id == id);
+            DeleteBookCommand command = new DeleteBookCommand(_context);
 
-            if (book==null)
+            try
             {
-                return NotFound(); 
+                command.BookId = id;
+                DeleteBookCommandValidator validations = new DeleteBookCommandValidator();
+                validations.ValidateAndThrow(command);
+                command.Handle();
+            }
+            catch (Exception e)
+            {
+                return NotFound(e.Message);
             }
 
-            _context.Books.Remove(book);
-            _context.SaveChanges();
             return Ok();
+
         }
 
     }
