@@ -7,6 +7,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using PatikaBookStore.Middlewares;
+using PatikaBookStore.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -33,6 +35,7 @@ namespace PatikaBookStore
             services.AddDbContext<BookStoreContext>(options => options.UseInMemoryDatabase(databaseName: "BookStoreDB")); //ekledik
             services.AddAutoMapper(Assembly.GetExecutingAssembly());
 
+            services.AddSingleton<ILoggerService, ConsoleLogger>();  // dependency injection  yarýn bir gün database e yazmak istersek içine dbLogger yazcaz o kadar 
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -49,6 +52,8 @@ namespace PatikaBookStore
             app.UseSwaggerUi3(); // ekledik
             app.UseOpenApi();  // EKLEDÝKKKKKKKKKKKKKKKK
             app.UseAuthorization();
+
+            app.UseCustomExceptionMiddle(); // kendi middleware ýmýz
 
             app.UseEndpoints(endpoints =>
             {

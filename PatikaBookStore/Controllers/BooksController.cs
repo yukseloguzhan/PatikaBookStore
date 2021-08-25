@@ -3,17 +3,17 @@ using FluentValidation;
 using FluentValidation.Results;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using PatikaBookStore.BookOperations.CreateBook;
-using PatikaBookStore.BookOperations.DeleteBook;
-using PatikaBookStore.BookOperations.GetBooks;
-using PatikaBookStore.BookOperations.GetByIdBook;
-using PatikaBookStore.BookOperations.UpdateBook;
+using PatikaBookStore.Application.BookOperations.Commands.CreateBook;
+using PatikaBookStore.Application.BookOperations.Commands.DeleteBook;
+using PatikaBookStore.Application.BookOperations.Commands.UpdateBook;
+using PatikaBookStore.Application.BookOperations.Queries.GetBooks;
+using PatikaBookStore.Application.BookOperations.Queries.GetByIdBook;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using static PatikaBookStore.BookOperations.CreateBook.CreateBookCommand;
-using static PatikaBookStore.BookOperations.UpdateBook.UpdateBookCommand;
+using static PatikaBookStore.Application.BookOperations.Commands.CreateBook.CreateBookCommand;
+using static PatikaBookStore.Application.BookOperations.Commands.UpdateBook.UpdateBookCommand;
 
 namespace PatikaBookStore.Controllers
 {
@@ -45,18 +45,11 @@ namespace PatikaBookStore.Controllers
 
             GetByIdBookQuery query = new GetByIdBookQuery(_context, _mapper);
 
-            try
-            {
-                query.BookId = id;
-                GetByIdBookValidator validations = new GetByIdBookValidator();
-                validations.ValidateAndThrow(query);
-                var result = query.Handle();
-                return Ok(result);
-            }
-            catch (Exception e)
-            {
-                return NotFound(e.Message);
-            }
+            query.BookId = id;
+            GetByIdBookValidator validations = new GetByIdBookValidator();
+            validations.ValidateAndThrow(query);
+            var result = query.Handle();
+            return Ok(result);
 
         }
 
@@ -65,19 +58,12 @@ namespace PatikaBookStore.Controllers
         {
 
             CreateBookCommand command = new CreateBookCommand(_context, _mapper);
+            command._createBookModel = newBook;
 
-            try
-            {
-                command._createBookModel = newBook;
-
-                CreateBookCommandValidator validations = new CreateBookCommandValidator();
-                validations.ValidateAndThrow(command);
-                command.Handle();
-            }
-            catch (Exception e)
-            {
-                return BadRequest(e.Message);
-            }
+            CreateBookCommandValidator validations = new CreateBookCommandValidator();
+            validations.ValidateAndThrow(command);
+            command.Handle();
+            
 
             return Ok();
 
@@ -89,20 +75,12 @@ namespace PatikaBookStore.Controllers
 
             UpdateBookCommand _command = new UpdateBookCommand(_context);
 
+            _command._updateBookModel = book;
+            _command.BookId = id;
 
-            try
-            {
-                _command._updateBookModel = book;
-                _command.BookId = id;
-                UpdateBookCommandValidator validations = new UpdateBookCommandValidator();
-                validations.ValidateAndThrow(_command);
-                _command.Handle();
-
-            }
-            catch (Exception e)
-            {
-                return BadRequest(e.Message);
-            }
+            UpdateBookCommandValidator validations = new UpdateBookCommandValidator();
+            validations.ValidateAndThrow(_command);
+            _command.Handle();
 
             return Ok();
 
@@ -113,18 +91,11 @@ namespace PatikaBookStore.Controllers
         {
             DeleteBookCommand command = new DeleteBookCommand(_context);
 
-            try
-            {
-                command.BookId = id;
-                DeleteBookCommandValidator validations = new DeleteBookCommandValidator();
-                validations.ValidateAndThrow(command);
-                command.Handle();
-            }
-            catch (Exception e)
-            {
-                return NotFound(e.Message);
-            }
-
+            command.BookId = id;
+            DeleteBookCommandValidator validations = new DeleteBookCommandValidator();
+            validations.ValidateAndThrow(command);
+            command.Handle();
+    
             return Ok();
 
         }
